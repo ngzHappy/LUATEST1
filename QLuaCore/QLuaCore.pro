@@ -10,10 +10,12 @@ DEFINES += QLUACORE_LIBRARY
 
 SOURCES += QLuaCore.cpp
 
-HEADERS += $$PWD/QLuaCore.hpp
+HEADERS += $$PWD/QLuaCore.hpp \
+    LuaCoreDetail.hpp
 HEADERS += $$PWD/qluacore_global.hpp
 
 include( $$PWD/lua.pri )
+include( $$PWD/../BuildPaths.pri )
 
 HEADERS += $$PWD/VirtualBase.hpp
-
+DESTDIR = $$BUILD_PATH_
