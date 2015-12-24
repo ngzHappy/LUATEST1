@@ -408,6 +408,46 @@ public :
 };
 
 template<typename From , typename To>
+class Converter<From,To,2,1> {
+    template<typename F,typename T>
+    static void _convert( const std::shared_ptr< QPointer<F> > & f,
+        std::shared_ptr< T > & t
+        ) {
+        if ( f ) {
+            QPointer<F> & p=*f;
+            if ( p ) {
+                auto * d = dynamic_cast<T *>(p.data());
+                if (d) { t=std::shared_ptr< T >(f,d); }
+            }
+        }
+    }
+public:
+    static To converter(const From & v ) {
+        To ans; _converter(v ,ans);return std::move(ans);
+    }
+};
+
+template<typename From , typename To>
+class Converter<From,To,1,2> {
+    template<typename F,typename T>
+    static void _converter( const std::shared_ptr<F> f,
+        std::shared_ptr< QPointer<T> > & t
+        ) {
+        if (f) {
+            auto * d=dynamic_cast<T *>(f.get());
+            if (d) {
+                auto * pd=new QPointer<T>(d);
+                t=std::shared_ptr< QPointer<T> >(pd,[f](QPointer<T> * _d) {delete _d; });
+            }
+        }
+    }
+public:
+    static To converter(const From & v ) {
+        To ans; _converter(v ,ans);return std::move(ans);
+    }
+};
+
+template<typename From , typename To>
 class Converter<From,To,2,2> {
     template<typename F,typename T>
     static void _converter( std::shared_ptr< QPointer<F> > f,std::shared_ptr< QPointer<T> > & t ) {
