@@ -50,9 +50,9 @@ public:
 };
 
 template<typename T >
-class __IsQObject 
-    :public std::integral_constant</*0*/  bool, 
-    std::is_base_of< QObject, typename __TypeDetailBase<T>::type >::value 
+class __IsQObject
+    :public std::integral_constant</*0*/  bool,
+    std::is_base_of< QObject, typename __TypeDetailBase<T>::type >::value
     /*0*/> {};
 
 template<typename T ,bool IsQObject = __IsQObject<T>::value >
@@ -213,9 +213,60 @@ public:
 
 }
 
+namespace __private {
+
+template<typename T1 >
+class __IsShared {
+
+    class Yes {};
+    class No {};
+
+    template<typename U>
+    static Yes __select(std::shared_ptr<U> && );
+
+    template<typename T>
+    static Yes __select(const std::shared_ptr<T> & );
+
+    static No __select( ... );
+
+    typedef typename std::remove_reference<T1>::type NR_;
+    typedef typename std::remove_cv<NR_>::type NCVR_;
+    typedef decltype( __select(*(reinterpret_cast<NCVR_ *>( 0 ))) ) AnsTypeRef;
+    typedef typename std::remove_reference<AnsTypeRef>::type AnsType;
+public:
+    enum { value = std::is_same< Yes,AnsType >::value };
+};
+
+}/*~__private*/
+
+template<typename T>
+class IsShared :
+    public std::integral_constant<bool,
+    ((__private::__IsShared<T>::value)==true)
+    >{};
+
+namespace __private {
+template<bool IsSharedPointer_ = false >
+class _From{public:
+    template<typename U>
+    static QVariant value( const U & data_ ) {return QVariant::fromValue( data_ );}
+};
+
+template<>
+class _From<true>{
+
+public:
+    template<typename U>
+    static QVariant value( const std::shared_ptr<U> & data_ ) {
+        return QVariant::fromValue( data_ );
+    }
+};
+
+}
+
 template<typename T>
 QVariant from(const T & data_) {
-    return QVariant::fromValue( data_ );
+    return __private::_From< IsShared<T>::value >::value( data_ );
 }
 
 template<typename T_>
@@ -309,7 +360,7 @@ class Converter<From,To,2,1> {/*error!!*/};
 template<typename From , typename To  >
 class Converter<From,To,2,2> {
     template<typename F,typename T>
-    static void _converter( 
+    static void _converter(
         const std::shared_ptr< QPointer<F> > f,
         std::shared_ptr< QPointer<T> > & t ) {
         if (f) {

@@ -8,7 +8,6 @@ namespace {
 class RegisterAllQtCore {
 public:
     RegisterAllQtCore() {
-
         cct::registerConverter<QAbstractAnimation,QObject>();
         cct::registerConverter<QAbstractEventDispatcher,QObject>();
         cct::registerConverter<QAbstractItemModel,QObject>();

@@ -6,7 +6,7 @@ QLuaCore::QLuaCore(){
     /* new a state */
     L = luaL_newstate() ;
     /* open standard libraries */
-    luaL_openlibs(state_);  
+    luaL_openlibs(state_);
 }
 
 

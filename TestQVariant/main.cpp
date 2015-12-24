@@ -1,4 +1,4 @@
-#include "MainWindow.hpp"
+﻿#include "MainWindow.hpp"
 #include <QApplication>
 
 #include <QLuaCore.hpp>
@@ -68,6 +68,7 @@ void test() {
 
 
     QVariant v;
+    v=cct::from(12);
     v=cct::from(new Test);
 
     QVariant v1 = cct::convert<QObject>(v);
@@ -82,7 +83,7 @@ int main(int argc, char *argv[])
 
     MainWindow win;
     win.show();
- 
+
     test();
     test1();
 
