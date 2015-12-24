@@ -39,6 +39,31 @@ Q_DECLARE_METATYPE( std::shared_ptr< QPointer<QWinEventNotifier> > )
 
 namespace cct {
 
+class NoCopyQVariant : 
+    private QVariant {
+public:
+
+    using QVariant::data        ;
+    using QVariant::userType    ;
+    using QVariant::constData   ;
+    using QVariant::typeName    ;
+    using QVariant::typeToName  ;
+    using QVariant::clear       ;
+    using QVariant::isValid     ;
+    using QVariant::convert     ;
+    
+    NoCopyQVariant( ) = default ;
+    NoCopyQVariant( const QVariant & v ):QVariant(v){}
+    NoCopyQVariant( QVariant && v ):QVariant( std::move( v ) ){}
+
+    NoCopyQVariant(const NoCopyQVariant &) = delete          ;
+    NoCopyQVariant(NoCopyQVariant &&) =default               ;
+    NoCopyQVariant&operator=(const NoCopyQVariant &) = delete;
+    NoCopyQVariant&operator=(NoCopyQVariant &&) =default     ;
+
+    const QVariant & toQVariant() const { return *this; }
+};
+
 namespace _private {
 
 template<typename T >
@@ -126,9 +151,9 @@ public:
     enum {value = _private::__TypeDetail<RCVR_>::value };
 };
 
-template<typename T_ >
-QVariant convert(const QVariant & v) {
-    QVariant ans_(v);
+template<typename T_  >
+NoCopyQVariant convert(const QVariant & v) {
+    QVariant ans_( v );
     typedef typename TypeDetail<T_>::type T;
     typedef typename std::remove_reference<T>::type RR_;
     typedef typename std::remove_cv<RR_>::type RCVR_;
@@ -141,8 +166,13 @@ QVariant convert(const QVariant & v) {
     throw "convert from type: "+QString(v.typeName())+to_typename_;
 }
 
-template<typename T_>
-auto data(const QVariant & v) -> typename std::remove_cv<typename std::remove_reference<T_>::type>::type & {
+template<typename T_  >
+NoCopyQVariant convert(const NoCopyQVariant & v) {
+    return convert<T_>( v.toQVariant() );
+}
+
+template<typename T_ ,typename _lick_QVariant >
+auto data(const _lick_QVariant & v) -> typename std::remove_cv<typename std::remove_reference<T_>::type>::type & {
     typedef typename TypeDetail<T_>::type T;
     typedef typename std::remove_reference<T>::type RR_;
     typedef typename std::remove_cv<RR_>::type RCVR_;
@@ -158,8 +188,8 @@ auto data(const QVariant & v) -> typename std::remove_cv<typename std::remove_re
     throw QString("value is null");
 }
 
-template<typename T>
-decltype(auto) const_data(const QVariant & v) {
+template<typename T,typename _lick_QVariant>
+decltype(auto) const_data(const _lick_QVariant & v) {
     const auto & ans_=data<T>(v);
     return ans_;
 }
@@ -227,6 +257,7 @@ class __IsShared {
     template<typename T>
     static Yes __select(const std::shared_ptr<T> & );
 
+    template<typename X = void >
     static No __select( ... );
 
     typedef typename std::remove_reference<T1>::type NR_;
@@ -253,9 +284,7 @@ class _From{public:
 };
 
 template<>
-class _From<true>{
-
-public:
+class _From<true>{public:
     template<typename U>
     static QVariant value( const std::shared_ptr<U> & data_ ) {
         return QVariant::fromValue( data_ );
@@ -265,7 +294,7 @@ public:
 }
 
 template<typename T>
-QVariant from(const T & data_) {
+auto from(const T & data_) {
     return __private::_From< IsShared<T>::value >::value( data_ );
 }
 

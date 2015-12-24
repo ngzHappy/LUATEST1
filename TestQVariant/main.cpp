@@ -57,23 +57,30 @@ void test1() {
     QVariant v;
     v=cct::from(new Test1);
 
-    QVariant v1=cct::convert<Test1Base>(v);
-    v=cct::convert<Test1>(v1);
+    auto v1=cct::convert<Test1Base>(v);
+    auto v2=cct::convert<Test1>(v1);
 
-    cct::data<Test1>(v).foo();
+    cct::data<Test1>(v2).foo();
 
+}
+
+void test2() {
 }
 
 void test() {
 
 
     QVariant v;
+
+
     v=cct::from(12);
     v=cct::from(new Test);
 
-    QVariant v1 = cct::convert<QObject>(v);
-    v=cct::convert<Test>( v1 );
-    cct::const_data<Test>(v).foo();
+    QVariant vx(v);
+
+    auto v1 = cct::convert<QObject>(v);
+    auto v2 = cct::convert<Test>( v1 );
+    cct::const_data<Test>(v2).foo();
 
 }
 
@@ -83,6 +90,9 @@ int main(int argc, char *argv[])
 
     MainWindow win;
     win.show();
+
+    std::cout << cct::IsShared<int>::value <<std::endl;
+    std::cout << cct::IsShared< std::shared_ptr<int> >::value <<std::endl;
 
     test();
     test1();
