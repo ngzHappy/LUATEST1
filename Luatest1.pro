@@ -11,7 +11,8 @@ TestBase.file = $$PWD/TestBase/TestBase.pro
 
 TestBase.depends += QLuaCore
 
-SUBDIRS += QLuaCore
+SUBDIRS += QLuaCore \
+    TestQVariant
 SUBDIRS += TestBase
 
 

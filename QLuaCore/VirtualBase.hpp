@@ -1,294 +1,394 @@
 ﻿
-#if !defined( HPP_LUA__QT__HPP__BASE__TYPE__ )
-#define HPP_LUA__QT__HPP__BASE__TYPE__
+#if !defined(CCT__TYPE__TRAITS__)
+#define CCT__TYPE__TRAITS__
 
+#if defined(_DEBUG)
+#include <cassert>
+#endif
 #include <type_traits>
 #include <memory>
-#include <QVariant>
-#include <QMetaType>
-#include <QPointer>
+#include <QtCore>
+
+//Q_DECLARE_METATYPE( std::shared_ptr< QPointer<QFutureWatcher> > )
+Q_DECLARE_METATYPE( std::shared_ptr< QPointer<QObject> > )
+Q_DECLARE_METATYPE( std::shared_ptr< QPointer<QAbstractAnimation> > )
+Q_DECLARE_METATYPE( std::shared_ptr< QPointer<QAbstractEventDispatcher> > )
+Q_DECLARE_METATYPE( std::shared_ptr< QPointer<QAbstractItemModel> > )
+Q_DECLARE_METATYPE( std::shared_ptr< QPointer<QAbstractState> > )
+Q_DECLARE_METATYPE( std::shared_ptr< QPointer<QAbstractTransition> > )
+Q_DECLARE_METATYPE( std::shared_ptr< QPointer<QCoreApplication> > )
+Q_DECLARE_METATYPE( std::shared_ptr< QPointer<QEventLoop> > )
+Q_DECLARE_METATYPE( std::shared_ptr< QPointer<QFileSelector> > )
+Q_DECLARE_METATYPE( std::shared_ptr< QPointer<QFileSystemWatcher> > )
+Q_DECLARE_METATYPE( std::shared_ptr< QPointer<QIODevice> > )
+Q_DECLARE_METATYPE( std::shared_ptr< QPointer<QItemSelectionModel> > )
+Q_DECLARE_METATYPE( std::shared_ptr< QPointer<QLibrary> > )
+Q_DECLARE_METATYPE( std::shared_ptr< QPointer<QMimeData> > )
+Q_DECLARE_METATYPE( std::shared_ptr< QPointer<QObjectCleanupHandler> > )
+Q_DECLARE_METATYPE( std::shared_ptr< QPointer<QPluginLoader> > )
+Q_DECLARE_METATYPE( std::shared_ptr< QPointer<QSettings> > )
+Q_DECLARE_METATYPE( std::shared_ptr< QPointer<QSharedMemory> > )
+Q_DECLARE_METATYPE( std::shared_ptr< QPointer<QSignalMapper> > )
+Q_DECLARE_METATYPE( std::shared_ptr< QPointer<QSocketNotifier> > )
+Q_DECLARE_METATYPE( std::shared_ptr< QPointer<QThread> > )
+Q_DECLARE_METATYPE( std::shared_ptr< QPointer<QThreadPool> > )
+Q_DECLARE_METATYPE( std::shared_ptr< QPointer<QTimeLine> > )
+Q_DECLARE_METATYPE( std::shared_ptr< QPointer<QTimer> > )
+Q_DECLARE_METATYPE( std::shared_ptr< QPointer<QTranslator> > )
+Q_DECLARE_METATYPE( std::shared_ptr< QPointer<QWinEventNotifier> > )
 
 namespace cct {
 
-class VirtualRoot {
+namespace _private {
+
+template<typename T >
+class __TypeDetailBase : public std::integral_constant<int,0> {
+    typedef typename std::remove_reference<T>::type RR_;
+    typedef typename std::remove_cv<RR_>::type RCVR_;
 public:
-    virtual ~VirtualRoot()=default;
-    VirtualRoot()=default;
-    VirtualRoot&operator=(const VirtualRoot &)=default;
-    VirtualRoot&operator=(VirtualRoot &&)=default;
-    VirtualRoot(const VirtualRoot &)=default;
-    VirtualRoot(VirtualRoot &&)=default;
+    typedef RCVR_ type;
 };
 
-}//~cct
+template<typename T >
+class __IsQObject 
+    :public std::integral_constant</*0*/  bool, 
+    std::is_base_of< QObject, typename __TypeDetailBase<T>::type >::value 
+    /*0*/> {};
 
-Q_DECLARE_METATYPE(std::shared_ptr<QObject>)
-Q_DECLARE_METATYPE(std::shared_ptr<cct::VirtualRoot>)
+template<typename T ,bool IsQObject = __IsQObject<T>::value >
+class __TypeDetail final : public std::integral_constant<int,1> {
+public:
+    typedef std::shared_ptr< typename __TypeDetailBase<T>::type > type;
+};
 
-namespace cct{
-namespace private_ {
-namespace cast_ {
-const static auto T_QOBJECT_ID_=qMetaTypeId< std::shared_ptr<QObject> >();
-const static auto T_VIRTUAL_ID_=qMetaTypeId< std::shared_ptr<VirtualRoot> >();
+template<typename T >
+class __TypeDetail<T,true> final: public std::integral_constant<int,2>{
+public:
+    typedef std::shared_ptr< QPointer<typename __TypeDetailBase<T>::type> > type;
+};
 
-template<typename T_>
-std::shared_ptr< T_ > cast(const QVariant & value_) {
-    typedef std::shared_ptr< T_ > T;
-    if (value_.isValid()==false) { return T{ nullptr }; }
+template<>class __TypeDetail<QString,false> final: public __TypeDetailBase<QString> {};
+template<>class __TypeDetail<QByteArray,false> final: public __TypeDetailBase<QByteArray> {};
+template<>class __TypeDetail<bool,false> final: public __TypeDetailBase<bool> {};
+template<>class __TypeDetail<int,false> final: public __TypeDetailBase<int> {};
+template<>class __TypeDetail<unsigned int,false> final: public __TypeDetailBase<unsigned int> {};
+template<>class __TypeDetail<long long,false> final: public __TypeDetailBase<long long> {};
+template<>class __TypeDetail<unsigned long long,false> final: public __TypeDetailBase<unsigned long long> {};
+template<>class __TypeDetail<long,false> final: public __TypeDetailBase<long> {};
+template<>class __TypeDetail<unsigned long,false> final: public __TypeDetailBase<unsigned long> {};
+template<>class __TypeDetail<short,false> final: public __TypeDetailBase<short> {};
+template<>class __TypeDetail<unsigned short,false> final: public __TypeDetailBase<unsigned short> {};
+template<>class __TypeDetail<double,false> final: public __TypeDetailBase<double> {};
+template<>class __TypeDetail<float,false> final: public __TypeDetailBase<float> {};
 
-    /*can convert */
-    const static auto T_id_=qMetaTypeId< T >();
-    if (value_.canConvert(T_id_)) { return value_.value<T>(); }
+template<typename T>
+class __IsSharedPointer :public std::integral_constant<int,0> {};
+template<typename T>
+class __IsSharedPointer< std::shared_ptr<T> > :public std::integral_constant<int,1> {};
+template<typename T>
+class __IsSharedPointer< std::shared_ptr< QPointer<T> > > :public std::integral_constant<int,2> {};
 
-    /*virtual root*/
-    if (value_.userType()==private_::cast_::T_VIRTUAL_ID_) {
-        auto v=value_.value< std::shared_ptr<VirtualRoot> >();
-        return std::dynamic_pointer_cast<T_>(v);
+template<typename T,int isSharedPointer=__IsSharedPointer<T>::value >
+class __GetData {
+public:
+    template<typename U>static decltype(auto) data(U && u) { return u; }
+};
+
+template<typename T>
+class __GetData<T,1> {
+public:
+    template<typename U>static auto & data(U && u) {
+        if (u) { return *u; }
+        throw QString("data pointer is null");
     }
+};
 
-    /*qobject*/
-    if (value_.userType()==private_::cast_::T_QOBJECT_ID_) {
-        auto v=value_.value< std::shared_ptr< QObject > >();
-        return std::dynamic_pointer_cast<T_>(v);
+template<typename T>
+class __GetData<T,2> {
+public:
+    template<typename U>static auto & data(U && u) {
+        if (u) { auto qp = *u;
+        if (qp) { return *qp; }
+        throw QString("qpointer is null");
+        }
+        throw QString("data pointer is null");
     }
-    return T{ nullptr };
+};
+
+}/*~_private*/
+
+template<typename T>
+class TypeDetail {
+    typedef typename std::remove_reference<T>::type RR_;
+    typedef typename std::remove_cv<RR_>::type RCVR_;
+public:
+    typedef typename _private::__TypeDetail<RCVR_>::type type;
+    enum {value = _private::__TypeDetail<RCVR_>::value };
+};
+
+template<typename T_ >
+QVariant convert(const QVariant & v) {
+    QVariant ans_(v);
+    typedef typename TypeDetail<T_>::type T;
+    typedef typename std::remove_reference<T>::type RR_;
+    typedef typename std::remove_cv<RR_>::type RCVR_;
+    if (v.isValid()&&ans_.convert(qMetaTypeId<RCVR_>())) {
+        return std::move(ans_);
+    }
+    const static QString to_typename_=QString(" to type: ")
+        +QMetaType::typeName(qMetaTypeId<RCVR_>())
+        +" fail ";
+    throw "convert from type: "+QString(v.typeName())+to_typename_;
 }
 
 template<typename T_>
-class Cast {
+auto data(const QVariant & v) -> typename std::remove_cv<typename std::remove_reference<T_>::type>::type & {
+    typedef typename TypeDetail<T_>::type T;
+    typedef typename std::remove_reference<T>::type RR_;
+    typedef typename std::remove_cv<RR_>::type RCVR_;
+    typedef _private::__GetData<RCVR_> _Get;
+#if defined(_DEBUG)/*{*/
+    const static auto __totypeid__ = qMetaTypeId<RCVR_>();
+    assert(v.userType()==__totypeid__);
+#endif/*}*/
+    void * ans_=const_cast<void *>(v.constData());
+    if (ans_) {
+        return  _Get::data(*(reinterpret_cast<RCVR_ *>(ans_)));
+    }
+    throw QString("value is null");
+}
+
+template<typename T>
+decltype(auto) const_data(const QVariant & v) {
+    const auto & ans_=data<T>(v);
+    return ans_;
+}
+
+template<typename T>
+auto fromQObject( const T * data_ ){
+    if (data_==nullptr) { throw QString("QObject pointer is null"); }
+    typedef typename std::remove_reference<T>::type RR_;
+    typedef typename std::remove_cv<RR_>::type RCVR_;
+    static_assert( std::is_base_of<QObject,RCVR_>::value,"QObject must be parent of T" );
+    typedef std::shared_ptr< QPointer<RCVR_> > AnsType;
+    auto * qPointer_ = new QPointer< RCVR_ >( const_cast<RCVR_ *>( data_ ) );
+    const auto delete_function_=[]( QPointer< RCVR_ > * d ) {
+        if(d){auto qp=*d; if (qp) { qp->deleteLater(); } delete d;}
+    };
+    return AnsType( qPointer_,delete_function_ );
+}
+
+template<typename T>
+auto fromType(const T * data_) {
+    if (data_==nullptr) { throw QString("data pointer is null"); }
+    typedef typename std::remove_reference<T>::type RR_;
+    typedef typename std::remove_cv<RR_>::type RCVR_;
+    static_assert( std::is_base_of<QObject,RCVR_>::value==false,"QObject must not be parent of T" );
+    const auto delete_function_=[](RCVR_ * d) {delete d; };
+    return std::shared_ptr<RCVR_>( const_cast<RCVR_ *>(data_),delete_function_);
+}
+
+namespace _private {
+
+/*base type such as int double qstring .... */
+template<typename T ,int Select = TypeDetail<T>::value > class __From {
 public:
-    static std::shared_ptr<T_> cast(const QVariant & v) { return cast_::cast<T_>(v); }
+    template<typename U>
+    static decltype(auto) value(U&& u) { return std::forward<U>(u); }
 };
 
-template<>
-class Cast<double> {
+/*type not base an qobject*/
+template<typename T > class __From<T,1> {
 public:
-    static double cast(const QVariant & v) { return v.value<double>(); }
+    template<typename U>
+    static decltype(auto) value(const U * u) { return cct::fromType(u); }
 };
 
-template<>
-class Cast<QString> {
+/*type is qobjct*/
+template<typename T > class __From<T,2> {
 public:
-    static QString cast(const QVariant & v) { return v.value<QString>(); }
+    template<typename U>
+    static decltype(auto) value(const U * u) { return cct::fromQObject(u); }
 };
 
-template<>
-class Cast<float> {
-public:
-    static float cast(const QVariant & v) { return v.value<float>(); }
-};
+}
 
-template<>
-class Cast<long> {
-public:
-    static long cast(const QVariant & v) { return v.value<long>(); }
-};
-
-template<>
-class Cast<QByteArray> {
-public:
-    static QByteArray cast(const QVariant & v) { return v.value<QByteArray>(); }
-};
-
-template<>
-class Cast<bool> {
-public:
-    static bool cast(const QVariant & v) { return v.value<bool>(); }
-};
-
-template<>
-class Cast<long long> {
-public:
-    static long long cast(const QVariant & v) { return v.value<long long>(); }
-};
-
-template<>
-class Cast<int> {
-public:
-    static int cast(const QVariant & v) { return v.value<int>(); }
-};
-
-template<>
-class Cast<unsigned short> {
-public:
-    static unsigned short cast(const QVariant & v) { return v.value<unsigned short>(); }
-};
-
-template<>
-class Cast<short> {
-public:
-    static short cast(const QVariant & v) { return v.value<short>(); }
-};
-
-template<>
-class Cast<unsigned int> {
-public:
-    static unsigned int cast(const QVariant & v) { return v.value<unsigned int>(); }
-};
-
-template<
-    typename T_,
-    bool IsVirtual=std::has_virtual_destructor<T_>::value,
-    bool IsQObject=std::is_base_of<QObject,T_>::value
->//false ,false
-class CastTo {
-public:
-    typedef std::shared_ptr<T_> type;
-    static type cast(T_ * v) { return type(v); }
-    static type cast(const T_ * v) { return type(const_cast<type *>(v)); }
-};
-
-template<bool v0,bool v1>
-class CastTo<int,v0,v1> {
-public:
-    typedef int type;
-    static const int & cast(const int & value_) { return value_; }
-    static int && cast(int && value_) { return std::move(value_); }
-    static int & cast(int & value_) { return value_; }
-};
-
-template<bool v0,bool v1>
-class CastTo<double,v0,v1> {
-public:
-    typedef double type;
-    static const type & cast(const type & value_) { return value_; }
-    static type && cast(type && value_) { return std::move(value_); }
-    static type & cast(type & value_) { return value_; }
-};
+template<typename T>
+QVariant from(const T & data_) {
+    return QVariant::fromValue( data_ );
+}
 
 template<typename T_>
-class CastTo<T_,true,false> {
+QVariant from( T_* && data_) {
+    typedef typename std::remove_pointer<T_>::type T;
+    typedef typename std::remove_reference<T>::type RR_;
+    typedef typename std::remove_cv<RR_>::type RCVR_;
+    static_assert( cct::TypeDetail<RCVR_>::value > 0,"you shold not use basetype pointer" );
+    return QVariant::fromValue( _private::__From<RCVR_>::value(data_) );
+}
+
+inline QVariant from( const char * const & data_ ) {
+    return QVariant::fromValue( QString::fromUtf8(data_) );
+}
+
+inline QVariant from( const char16_t * const & data_ ) {
+    return QVariant::fromValue( QString::fromUtf16(data_) );
+}
+
+inline QVariant from( const char32_t * const & data_ ) {
+    return QVariant::fromValue( QString::fromUcs4(data_) );
+}
+
+namespace _private {
+
+/* 0,0 */
+template<typename From , typename To ,int FromID , int ToID >
+class Converter {
 public:
-    typedef std::shared_ptr<T_> type;
-    static type cast(T_ * value_) { return type(value_); }
-    static type cast(const T_ * value_) { return type(const_cast<T_ *>(value_)); }
+    static To converter(const From & v) { return To(v); }
 };
 
-template<typename T_>
-class CastTo<T_,true,true> {
+/*0,1*/
+template<typename From , typename To  >
+class Converter<From,To,0,1> {
+    template<typename U>
+    static void _converter( const From & v,std::shared_ptr<U>  & ans ) {
+        ans=std::make_shared<U>( v );
+    }
 public:
-    typedef std::shared_ptr<T_> type;
-    static type cast(T_ * value_) {
-        type ans; QPointer<QObject> wp(value_);
-        ans.reset(value_,[wp](auto *) {if (wp) { wp->deleteLater(); }});
+    static To converter(const From & v) { To ans; _converter(v,ans); return std::move(ans); }
+};
+
+/*0,2*/
+template<typename From , typename To  >
+class Converter<From,To,0,2> {
+    template<typename U>
+    static void _converter( const From & v, std::shared_ptr< QPointer<U> >  & ans ) {
+        U * ans_=new U( v );
+        auto * qp_ = new QPointer<U>( ans_ );
+        ans=std::shared_ptr< QPointer<U> >(qp_,[](QPointer<U> * d) {
+            if (d) { {auto & pq=*d; if (pq) { pq->deleteLater(); } } delete d; }
+        });
+    }
+public:
+    static To converter(const From & v) { To ans; _converter(v,ans); return std::move(ans); }
+};
+
+/* 1,0 */
+template<typename From , typename To >
+class Converter<From,To,1,0> {
+public:
+    static To converter(const From & v) { return To( *v ); }
+};
+
+/* 1,1 */
+template<typename From , typename To  >
+class Converter<From,To,1,1> {
+    template<typename F,typename T>
+    static void _converter( const std::shared_ptr<F> & f,std::shared_ptr<T> & t ) {t=f;}
+public:
+    static To converter(const From & v) { To ans; _converter(v,ans);return std::move(ans); }
+};
+
+/* 1,1 */
+template<typename From , typename To  >
+class Converter<From,To,1,2> {/*error!!*/};
+
+/* 2,0 */
+template<typename From , typename To >
+class Converter<From,To,2,0> {
+public:
+    static To converter(const From & v) { return To( *(*v) ); }
+};
+
+/* 2,1 */
+template<typename From , typename To  >
+class Converter<From,To,2,1> {/*error!!*/};
+
+/* 2,2 */
+template<typename From , typename To  >
+class Converter<From,To,2,2> {
+    template<typename F,typename T>
+    static void _converter( 
+        const std::shared_ptr< QPointer<F> > f,
+        std::shared_ptr< QPointer<T> > & t ) {
+        if (f) {
+            QPointer<F> & f_ = *f;
+            T * ans_=f_.data();
+            if (ans_) {
+                auto * pq=new QPointer<T>(ans_);
+                t=std::shared_ptr< QPointer<T> >(pq, [f](QPointer<T> * d) {delete d; } );
+            }
+        }
+    }
+public:
+    static To converter(const From & v) { To ans; _converter(v,ans);return std::move(ans); }
+};
+
+}
+
+/**/
+template<typename _From_,typename _To_>
+bool registerConverter() {
+    typedef typename TypeDetail<_From_>::type From;
+    typedef typename TypeDetail<_To_>::type To;
+    return QMetaType::registerConverter<From,To>( &(_private::Converter<From,To,TypeDetail<_From_>::value,TypeDetail<_To_>::value>::converter) );
+}
+
+namespace _private {
+namespace _virtual {
+
+/* 0,0 */
+template<typename From , typename To ,int FromID , int ToID >
+class Converter {};
+
+template<typename From , typename To>
+class Converter<From,To,1,1> {
+    template<typename F,typename T>
+    static void _converter( std::shared_ptr<F> & f,std::shared_ptr<T> & t ) {
+        if (f) { t=std::dynamic_pointer_cast<T>(f); }
+    }
+public :
+    static To converter(const From & v_) {
+        auto & v = const_cast<From &>( v_ );
+        To ans; _converter(v,ans);
         return std::move(ans);
     }
-    static type cast(const T_ * value__) {
-        T_ * value_=const_cast<T_ *>(value__);
-        type ans; QPointer<QObject> wp(value_);
-        ans.reset(value_,[wp](auto *) {if (wp) { wp->deleteLater(); }});
-        return std::move(ans);
+};
+
+template<typename From , typename To>
+class Converter<From,To,2,2> {
+    template<typename F,typename T>
+    static void _converter( std::shared_ptr< QPointer<F> > f,std::shared_ptr< QPointer<T> > & t ) {
+        if (f) {
+            QPointer<F> & fqp=*f;
+            F * data_ = fqp.data();
+            if (data_) {
+                T * value_=dynamic_cast<T *>(data_);
+                if (value_) {
+                    auto * qp = new QPointer<T>(value_);
+                    t=std::shared_ptr< QPointer<T> >(qp,[f](QPointer<T> * d) {delete d; });
+                }
+            }
+        }
+    }
+public :
+    static To converter(const From & v ) {
+        To ans; _converter(v ,ans);return std::move(ans);
     }
 };
 
-template<bool v0,bool v1>
-class CastTo<QString,v0,v1> {
-public:
-    typedef QByteArray type;
-    static type cast(const QString & value_) { return value_.toUtf8(); }
-};
-
-template<bool v0,bool v1>
-class CastTo<QByteArray,v0,v1> {
-public:
-    typedef QByteArray type;
-    static const type & cast(const type & value_) { return value_; }
-    static type && cast(type && value_) { return std::move(value_); }
-    static type & cast(type & value_) { return value_; }
-};
-
-template<bool v0,bool v1>
-class CastTo<float,v0,v1> {
-public:
-    typedef float type;
-    static const type & cast(const type & value_) { return value_; }
-    static type && cast(type && value_) { return std::move(value_); }
-    static type & cast(type & value_) { return value_; }
-};
-
-template<bool v0,bool v1>
-class CastTo<long long,v0,v1> {
-public:
-    typedef long long type;
-    static const type & cast(const type & value_) { return value_; }
-    static type && cast(type && value_) { return std::move(value_); }
-    static type & cast(type & value_) { return value_; }
-};
-
-template<bool v0,bool v1>
-class CastTo<short,v0,v1> {
-public:
-    typedef short type;
-    static const type & cast(const type & value_) { return value_; }
-    static type && cast(type && value_) { return std::move(value_); }
-    static type & cast(type & value_) { return value_; }
-};
-
-template<bool v0,bool v1>
-class CastTo<unsigned int,v0,v1> {
-public:
-    typedef unsigned int type;
-    static const type & cast(const type & value_) { return value_; }
-    static type && cast(type && value_) { return std::move(value_); }
-    static type & cast(type & value_) { return value_; }
-};
-
-template<bool v0,bool v1>
-class CastTo<unsigned short,v0,v1> {
-public:
-    typedef unsigned short type;
-    static const type & cast(const type & value_) { return value_; }
-    static type && cast(type && value_) { return std::move(value_); }
-    static type & cast(type & value_) { return value_; }
-};
-
-template<bool v0,bool v1>
-class CastTo<bool,v0,v1> {
-public:
-    typedef bool type;
-    static const type & cast(const type & value_) { return value_; }
-    static type && cast(type && value_) { return std::move(value_); }
-    static type & cast(type & value_) { return value_; }
-};
-
-}//~cast_
-}//~private_
-
-template<typename T_>
-inline decltype(auto) castTo(T_ && value) {
-    typedef typename std::remove_reference<T_>::type NRT_;
-    typedef typename std::remove_cv<NRT_>::type NCVRT_;
-    typedef typename std::remove_pointer<NCVRT_>::type NPCVRT_;
-    return private_::cast_::CastTo<NPCVRT_>::cast(std::forward<T_>(value));
+}
 }
 
-template<typename T_>
-inline decltype(auto) castTo(T_ * value) {
-    typedef typename std::remove_reference<T_>::type NRT_;
-    typedef typename std::remove_cv<NRT_>::type NCVRT_;
-    typedef typename std::remove_pointer<NCVRT_>::type NPCVRT_;
-    return private_::cast_::CastTo<NPCVRT_>::cast( value );
+template<typename _From_,typename _To_>
+bool registerVirtualConverter() {
+    typedef typename TypeDetail<_From_>::type From;
+    typedef typename TypeDetail<_To_>::type To;
+    return QMetaType::registerConverter<From,To>( &(_private::_virtual::Converter<From,To,TypeDetail<_From_>::value,TypeDetail<_To_>::value>::converter) );
 }
 
-template<typename T_>
-inline decltype(auto) castTo(const T_ * value) {
-    typedef typename std::remove_reference<T_>::type NRT_;
-    typedef typename std::remove_cv<NRT_>::type NCVRT_;
-    typedef typename std::remove_pointer<NCVRT_>::type NPCVRT_;
-    return private_::cast_::CastTo<NPCVRT_>::cast( value );
-}
-
-inline const char * castTo(const char * value) { return value; }
-
-template<typename T_>
-inline decltype(auto) cast(const QVariant & v) {
-    typedef typename std::remove_reference<T_>::type NRT_;
-    typedef typename std::remove_cv<NRT_>::type NCVRT_;
-    return private_::cast_::Cast<NCVRT_>::cast(v);
-}
-
-}//~cct
-
+}/*~cct*/
 #endif
 
 

@@ -5,7 +5,7 @@ CONFIG += console
 QT += core gui
 QT += widgets
 
-TARGET = TestBase
+TARGET = TestQVariant
 TEMPLATE = app
 
 SOURCES += main.cpp\

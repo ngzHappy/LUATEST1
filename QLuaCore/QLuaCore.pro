@@ -9,9 +9,10 @@ TEMPLATE = lib
 DEFINES += QLUACORE_LIBRARY
 
 SOURCES += QLuaCore.cpp
+SOURCES += VirtualBase.cpp
 
-HEADERS += $$PWD/QLuaCore.hpp \
-    LuaCoreDetail.hpp
+HEADERS += $$PWD/QLuaCore.hpp
+HEADERS += $$PWD/LuaCoreDetail.hpp
 HEADERS += $$PWD/qluacore_global.hpp
 
 include( $$PWD/lua.pri )

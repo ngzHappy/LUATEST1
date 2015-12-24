@@ -12,7 +12,6 @@
 
 class QLUACORESHARED_EXPORT QLuaCore
     :public std::enable_shared_from_this<QLuaCore>
-    ,public cct::VirtualRoot
 {
     QLuaCore&operator=(const QLuaCore &)=delete;
     QLuaCore&operator=(QLuaCore &&)=delete;
