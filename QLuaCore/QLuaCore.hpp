@@ -58,6 +58,7 @@ public:
     class QLUACORESHARED_EXPORT LuaStateDeepthLock {
         std::shared_ptr<QLuaCore> _this;
         int deepth_;
+    public:
         LuaStateDeepthLock&operator=(const LuaStateDeepthLock &)=delete;
         LuaStateDeepthLock&operator=(LuaStateDeepthLock &&)=default;
         LuaStateDeepthLock(const LuaStateDeepthLock &)=delete;
