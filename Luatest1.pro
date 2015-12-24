@@ -8,11 +8,13 @@ TEMPLATE = subdirs
 
 QLuaCore.file = $$PWD/QLuaCore/QLuaCore.pro
 TestBase.file = $$PWD/TestBase/TestBase.pro
+TestQVariant.file = $$PWD/TestQVariant/TestQVariant.pro
 
 TestBase.depends += QLuaCore
+TestQVariant.depends += QLuaCore
 
-SUBDIRS += QLuaCore \
-    TestQVariant
+SUBDIRS += QLuaCore
+SUBDIRS += TestQVariant
 SUBDIRS += TestBase
 
 
