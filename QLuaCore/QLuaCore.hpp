@@ -1,4 +1,4 @@
-﻿#ifndef QLUACORE_HPP
+﻿#if !defined( QLUACORE_HPP )
 #define QLUACORE_HPP
 
 #include <memory>
