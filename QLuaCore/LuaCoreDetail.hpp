@@ -105,7 +105,7 @@ inline int luaL_copyTable( lua_State * L ) {
                         lua_copy(L,-3,-1);lua_copy(L,-5,-2);
                         lua_settable(L,tt_);
 
-                        from_.push_back(tf_); 
+                        from_.push_back(tf_);
                         to_.push_back(tt_);
                         auto ttt_=lua_gettop(L);
                         to_.push_back(ttt_);
@@ -139,7 +139,7 @@ inline int luaL_copyTable( lua_State * L ) {
 }
 
 inline void luaL_printTable( lua_State * L ,std::function<void(const std::string &)> print_ ) {
-    enum DataType{
+    enum DataType : int{
         Bool,Number,Integer,String,NIL
     };
 
@@ -172,7 +172,7 @@ inline void luaL_printTable( lua_State * L ,std::function<void(const std::string
 
         Data & operator=( const Data & v ) {
             if (this==&v) { return *this; }
-            if (v.type==String) { 
+            if (v.type==String) {
                 if (type==String) { string=v.string; }
                 else {
                     type=String;
@@ -198,7 +198,7 @@ inline void luaL_printTable( lua_State * L ,std::function<void(const std::string
 
         Data & operator=( Data && v ) {
             if (this==&v) { return *this; }
-            if (v.type==String) { 
+            if (v.type==String) {
                 if (type==String) { string = std::move( v.string ); }
                 else {
                     type=String;
@@ -238,7 +238,7 @@ inline void luaL_printTable( lua_State * L ,std::function<void(const std::string
     const auto to_string=[](auto i) { std::stringstream ss; ss<<i; std::string ans; ss>>ans; return std::move(ans); };
 
     const auto oprint_key=[&print_,&to_string](const Data & v) {
-        const DataType & type=v.type;
+        const int & type=v.type;
         switch (type) {
             case DataType::Number: { print_("["); print_(to_string(v.number)); print_("]"); }; break;
             case DataType::Integer: { print_("["); print_(to_string(v.integer)); print_("]"); }; break;
@@ -258,7 +258,7 @@ inline void luaL_printTable( lua_State * L ,std::function<void(const std::string
                 std::string op_="==";
                 while ((string_find(v.string,"["+op_+"["))||string_find(v.string,"]"+op_+"]")) { op_+="="; }
                 print_("["+op_+"[");
-                print_(v.string); 
+                print_(v.string);
                 print_("]"+op_+"]");
             }; break;
             case DataType::NIL: print_("nil"); ; break;
@@ -284,14 +284,14 @@ inline void luaL_printTable( lua_State * L ,std::function<void(const std::string
         ans=root_name_->string;
         for (auto next_name_=root_name_;(++next_name_)!=end_name_; ) {
             const auto &current_table_name=*next_name_;
-            switch ( current_table_name.type ) {
+            switch ( int( current_table_name.type) ) {
                 case DataType::Integer: ans+=std::move( "["+to_string(current_table_name.integer)+"]" ); break;
                 case DataType::Number: ans+=std::move( "["+to_string(current_table_name.number)+"]" ); ; break;
                 case DataType::String: ans+=std::move("[\""+current_table_name.string+"\"]") ; break;
             }
         }
         const auto &current_table_name= ctable;
-        switch ( current_table_name.type ) {
+        switch ( int( current_table_name.type) ) {
             case DataType::Integer: ans+=std::move( "["+to_string(current_table_name.integer)+"]" ); break;
             case DataType::Number: ans+=std::move( "["+to_string(current_table_name.number)+"]" ); ; break;
             case DataType::String: ans+=std::move("[\""+current_table_name.string+"\"]") ; break;
@@ -334,7 +334,7 @@ print_next_start:
 
         if ( lua_istable(L,-1) ) {
             const static constexpr char start_string[]{" = {  --[[  --]]    \n"};
-            switch ( current_table_name.type ) {
+            switch ( int( current_table_name.type ) ) {
                 case DataType::Integer: print_( "["+to_string(current_table_name.integer)+"]"+start_string ); break;
                 case DataType::Number: print_( "["+to_string(current_table_name.number)+"]"+start_string ); ; break;
                 case DataType::String: {
@@ -372,7 +372,7 @@ print_next_start:
                     print_tables.push_back( current_table );
                     print_tables_names.push_back( std::move(current_table_name) );
 
-                    all_tables.insert({table_pointer,table_name_full( print_tables_names,key_ ) });              
+                    all_tables.insert({table_pointer,table_name_full( print_tables_names,key_ ) });
 
                     current_table=lua_gettop(L);
                     current_table_name=std::move(key_);
@@ -398,7 +398,7 @@ print_next_start:
 
             }
             else {
-                Data key_,value_; 
+                Data key_,value_;
                 bool do_not_support=false;
                 auto type_ = lua_type(L,-2);
                 switch (type_) {
