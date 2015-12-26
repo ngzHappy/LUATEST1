@@ -565,10 +565,12 @@ int saveTable(lua_State * L) {
 }
 
 int tableToString(lua_State * L) {
-    std::stringstream ofs;
-    luaL_printTable(L,[&ofs](const std::string & v) { ofs<<v; });
+    std::shared_ptr< std::string > ofs(new std::string);
+    ofs->reserve(10*1024);
+    luaL_printTable(L,[&ofs](const std::string & v) { (*(ofs))+=v; });
     lua_settop(L,0);
-    lua_pushstring(L,ofs.str().c_str());
+    lua_pushstring(L,ofs->c_str());
+    ofs.reset();
     return 1;
 }
 
