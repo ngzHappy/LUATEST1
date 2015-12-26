@@ -9,11 +9,17 @@ TEMPLATE = subdirs
 QLuaCore.file = $$PWD/QLuaCore/QLuaCore.pro
 TestBase.file = $$PWD/TestBase/TestBase.pro
 TestQVariant.file = $$PWD/TestQVariant/TestQVariant.pro
+TestSaveTable.file = $$PWD/TestSaveTable/TestSaveTable.pro
+lua.file = $$PWD/lua/lua.pro
 
 TestBase.depends += QLuaCore
 TestQVariant.depends += QLuaCore
+TestSaveTable.depends += QLuaCore
+lua.depends += QLuaCore
 
 SUBDIRS += QLuaCore
+SUBDIRS += lua
+SUBDIRS += TestSaveTable
 SUBDIRS += TestQVariant
 SUBDIRS += TestBase
 
