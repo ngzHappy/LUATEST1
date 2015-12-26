@@ -240,23 +240,35 @@ inline void luaL_printTable( lua_State * L ,std::function<void(const std::string
         int table;
         bool ipair=false;
         lua_Integer ipair_index=1;
+        lua_Integer tableIndex=0;
         TableMemory() {}
         TableMemory(const std::string & v,int t):data(v),table(t) {}
         TableMemory(std::string && v,int t):data( std::move(v) ),table(t) {}
-        TableMemory(std::string && v,int t,bool i,lua_Integer ii):data( std::move(v) ),table(t),ipair(i),ipair_index(ii) {}
+        TableMemory(std::string && v,int t,bool i,lua_Integer ii,lua_Integer ti):data( std::move(v) ),table(t),ipair(i),ipair_index(ii),tableIndex(ti) {}
         TableMemory(Data && v,int t) :data( std::move(v) ),table(t) {}
         TableMemory(const Data & v,int t) :data( v ),table(t) {}
-        TableMemory(Data && v,int t,bool i,lua_Integer ii):data( std::move(v) ),table(t),ipair(i),ipair_index(ii) {}
+        TableMemory(Data && v,int t,bool i,lua_Integer ii,lua_Integer ti):data( std::move(v) ),table(t),ipair(i),ipair_index(ii) ,tableIndex(ti){}
     };
 
+    const auto is_integer=[]( const std::string & v )->bool {
+        if (v.empty()) { return false; }
+        const auto i=v[0];if ((i>='0')&&(i<='9')) { return true; }
+        return false;
+    };
     const auto to_string=[](auto i) { std::stringstream ss; ss<<i; std::string ans; ss>>ans; return std::move(ans); };
 
-    const auto oprint_key=[&print_,&to_string](const Data & v) {
+    const auto oprint_key=[&print_,&to_string,&is_integer](const Data & v) {
         const int & type=v.type;
         switch (type) {
             case DataType::Number: { print_("["); print_(to_string(v.number)); print_("]"); }; break;
             case DataType::Integer: { print_("["); print_(to_string(v.integer)); print_("]"); }; break;
-            case DataType::String: {print_("[\""); print_(v.string); print_("\"]"); }; break;
+            case DataType::String: 
+                if (is_integer(v.string)) {
+                    print_("[\""); print_(v.string); print_("\"]");
+                }
+                else {
+                    print_(v.string);
+                }break;
         }
     };
 
@@ -311,13 +323,7 @@ inline void luaL_printTable( lua_State * L ,std::function<void(const std::string
             case DataType::String: ans+=std::move("[\""+current_table_name.string+"\"]") ; break;
         }
         return std::move(ans);
-    };
-
-    const auto is_integer=[]( const std::string & v )->bool {
-        if (v.empty()) { return false; }
-        const auto i=v[0];if ((i>='0')&&(i<='9')) { return true; }
-        return false;
-    };
+    };     
 
     /*-----------------------------------------------*/
     if (lua_gettop(L)<2) { lua_pushstring(L,"you must input table name and table"); lua_error(L); }
@@ -332,7 +338,7 @@ inline void luaL_printTable( lua_State * L ,std::function<void(const std::string
     print_file_begin(tbname);
 
     /*-----------------------------------------------*/
-       
+    lua_Integer table_index_=0;
     std::list< TableMemory > print_tables{ {tbname, 2} };
     std::list< std::string > final_print_lines;
     std::map< const void *,std::string > all_tables{ {lua_topointer(L,2),tbname} };
@@ -345,13 +351,14 @@ print_next_start:
         Data current_table_name= std::move( current_table_memory.data ) ;
         bool ipair_=current_table_memory.ipair;
         lua_Integer ipair_index_=current_table_memory.ipair_index;
+        lua_Integer current_table_index=current_table_memory.tableIndex;
 
         print_tables.pop_back();
 
         /* reset the value : ipair_ */
         if ( lua_istable(L,-1) ) {
 
-            const static constexpr char start_string[]{"{  --[[  --]]    \n"};
+            const static constexpr char start_string[]{"{   "};
             switch ( int( current_table_name.type ) ) {
                 case DataType::Integer:if (false==ipair_) { print_("["+to_string(current_table_name.integer)+"] ="); }print_(start_string); break;
                 case DataType::Number: if (false==ipair_) { print_("["+to_string(current_table_name.number)+"] ="); }print_(start_string); break;
@@ -369,6 +376,8 @@ print_next_start:
 
             lua_pushnil(L);
             ipair_=true;
+            print_("--[[ " +to_string( current_table_index )+ " --]]  \n");
+
         }
 
         while ( lua_next(L,current_table) != 0) {
@@ -398,9 +407,9 @@ print_next_start:
 
                 if ( ctable == etable ) {
                     /*find a new table*/
-
+                    ++table_index_;
                     /*save old value*/
-                    print_tables.emplace_back( std::move(current_table_name),current_table,ipair_,ipair_index_ );
+                    print_tables.emplace_back( std::move(current_table_name),current_table,ipair_,ipair_index_,current_table_index );
 
                     all_tables.insert({table_pointer,table_name_full( print_tables ,key_ ) });
 
@@ -408,7 +417,7 @@ print_next_start:
                     current_table_name=std::move(key_);
 
                     /*set new value*/
-                    print_tables.emplace_back( std::move(current_table_name), current_table ,ipair_,1);
+                    print_tables.emplace_back( std::move(current_table_name), current_table ,ipair_,1,table_index_);
 
                     goto print_next_start;
                 }
@@ -471,10 +480,10 @@ print_next_start:
         }/*while table*/
 
         if ( print_tables.empty() ) {
-            print_("} --[[  --]] \n");
+            print_("} --[[ " +to_string( current_table_index )+ " --]] \n");
         }
         else {
-            print_("} , --[[  --]] \n");
+            print_("} , --[[ " +to_string( current_table_index )+ " --]] \n");
         }
 
         lua_pop(L,1);
