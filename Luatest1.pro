@@ -17,7 +17,8 @@ TestQVariant.depends += QLuaCore
 TestSaveTable.depends += QLuaCore
 lua.depends += QLuaCore
 
-SUBDIRS += QLuaCore
+SUBDIRS += QLuaCore \
+    Iterator
 SUBDIRS += lua
 SUBDIRS += TestSaveTable
 SUBDIRS += TestQVariant

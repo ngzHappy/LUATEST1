@@ -384,7 +384,7 @@ void fxx5555() {
     QVariant v=QVariant::fromValue( map );
     auto it=v.value<QAssociativeIterable>();
 }
-
+#include <iterator>
 
 int main(int argc, char *argv[])
 {
